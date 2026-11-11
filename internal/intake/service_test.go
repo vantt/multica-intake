@@ -243,3 +243,13 @@ func TestVietnameseDescription(t *testing.T) {
 		t.Fatalf("vi description:\n%s", d)
 	}
 }
+
+func TestListWorkspacesSaysWhyItIsEmpty(t *testing.T) {
+	_, srv := newFake(t)
+	s := testService(t, srv.URL, func(c *config.Config) { c.IntakeAgent = "Phương (PM)" })
+	_, err := s.ListWorkspaces(context.Background(), caller(t, s, "tok-maya"))
+	var ie *Error
+	if !errors.As(err, &ie) || ie.Code != CodeNoIntakeAgent || !strings.Contains(ie.Why, "acme (no agent named") {
+		t.Fatalf("got %v", err)
+	}
+}

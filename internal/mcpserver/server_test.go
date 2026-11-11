@@ -103,8 +103,9 @@ func TestHTTPRequiresAMulticaTokenAndServesTools(t *testing.T) {
 			t.Errorf("%s must not be read-only", n)
 		}
 	}
+	// The fake account is in no workspace: the tool must say so, not return an empty list.
 	res, err := sess.CallTool(ctx, &mcp.CallToolParams{Name: "list_workspaces", Arguments: map[string]any{}})
-	if err != nil || res.IsError {
+	if err != nil || !res.IsError || !strings.Contains(res.Content[0].(*mcp.TextContent).Text, intake.CodeNoIntakeAgent) {
 		t.Fatalf("list_workspaces: %v %+v", err, res)
 	}
 	res, err = sess.CallTool(ctx, &mcp.CallToolParams{Name: "submit_issue", Arguments: map[string]any{"workspace": "x", "title": "t", "request": "r"}})

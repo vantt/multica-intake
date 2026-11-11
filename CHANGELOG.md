@@ -3,6 +3,14 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow semver.
 
+## [0.1.2] - 2026-11-11
+
+### Fixed
+- `list_workspaces` no longer returns an empty list silently when no workspace has the intake
+  agent: it answers `no_intake_agent`, naming each workspace and the agent name it looked for.
+- `doctor` accepts a setup made only of `MULTICA_INTAKE_*` environment variables (the container
+  image), instead of asking for a config file.
+
 ## [0.1.1] - 2026-11-11
 
 ### Changed

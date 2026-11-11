@@ -25,6 +25,7 @@ type setup struct {
 	exists  bool
 	loadErr error
 	pending *config.Config // values gathered by init's prompts, written by the config_file fix
+	init    bool           // running under init: an env-only setup still gets its file written
 }
 
 func (e *env) loadSetup() (*setup, error) {
@@ -77,6 +78,10 @@ func (s *setup) checks() []doctor.Check {
 					Fix: "multica-intake config edit   # or: multica-intake config default > " + quote(s.file)}
 			}
 			if !s.exists {
+				// A container is configured by MULTICA_INTAKE_* alone; that is a complete setup.
+				if !s.init && len(s.cfg.Validate()) == 0 && envConfigured() {
+					return doctor.Result{Status: doctor.OK, Detail: "no file; settings come from MULTICA_INTAKE_* environment variables"}
+				}
 				return doctor.Result{Status: doctor.Fail, Detail: "no config at " + s.file, Fix: "multica-intake init --yes"}
 			}
 			return doctor.Result{Status: doctor.OK, Detail: s.file}
@@ -265,6 +270,16 @@ func (s *setup) checks() []doctor.Check {
 		})
 	}
 	return cs
+}
+
+// envConfigured reports whether any MULTICA_INTAKE_<KEY> setting is in the environment.
+func envConfigured() bool {
+	for _, k := range config.Keys {
+		if _, ok := os.LookupEnv("MULTICA_INTAKE_" + strings.ToUpper(k.Name)); ok {
+			return true
+		}
+	}
+	return false
 }
 
 // prompt asks one question on the terminal.

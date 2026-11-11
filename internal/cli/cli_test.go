@@ -162,3 +162,15 @@ func TestUninstallWithoutTTYNeedsYes(t *testing.T) {
 		t.Fatal("config dir kept after --purge")
 	}
 }
+
+func TestEnvOnlyConfigIsHealthy(t *testing.T) {
+	tempHome(t)
+	api := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(200) }))
+	defer api.Close()
+	t.Setenv("MULTICA_INTAKE_MULTICA_URL", api.URL)
+	t.Setenv("MULTICA_INTAKE_INTAKE_AGENT", "PM")
+	code, out, _ := run(t, "doctor", "--json")
+	if code != 0 || !strings.Contains(out, "environment variables") {
+		t.Fatalf("%d %s", code, out)
+	}
+}

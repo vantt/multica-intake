@@ -84,6 +84,7 @@ func runInit(ctx context.Context, e *env, args []string) int {
 		c.Source = e.prompt(r, "Source tag written on each issue (e.g. the chat app's name)", c.Source)
 		s.cfg, s.pending = c, &c
 	}
+	s.init = true
 	rep := doctor.Run(ctx, s.checks(), doctor.Options{Fix: true, Creates: true, DryRun: e.dryRun})
 	return e.report("init", rep, s)
 }

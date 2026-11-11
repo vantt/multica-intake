@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -208,9 +209,14 @@ func (s *Service) ListWorkspaces(ctx context.Context, c Caller) (out []Workspace
 	}
 	cl := s.client(c.Token)
 	out = []WorkspaceInfo{}
+	var skipped []string
 	for _, w := range ws {
 		agent, aerr := s.intakeAgent(ctx, cl, w)
 		if aerr != nil {
+			if code := (*Error)(nil); !errors.As(aerr, &code) || code.Code != CodeNoIntakeAgent {
+				return nil, aerr
+			}
+			skipped = append(skipped, w.Slug+" (no agent named "+strconv.Quote(s.cfg.AgentFor(w.Slug))+")")
 			continue // a workspace nobody receives in is not offered
 		}
 		info := WorkspaceInfo{Slug: w.Slug, Name: w.Name, IntakeAgent: agent.Name, Projects: []ProjectInfo{}, Types: []string{}}
@@ -241,6 +247,14 @@ func (s *Service) ListWorkspaces(ctx context.Context, c Caller) (out []Workspace
 			}
 		}
 		out = append(out, info)
+	}
+	if len(out) == 0 {
+		why := "This account can submit to no workspace."
+		if len(skipped) > 0 {
+			why = "None of this account's workspaces has the intake agent: " + strings.Join(skipped, ", ") + "."
+		}
+		return nil, newErr(CodeNoIntakeAgent, why,
+			"Tell the owner: add this account to a workspace, or set the agent's exact name with `multica-intake config set intake_agent \"<name>\"`.")
 	}
 	return out, nil
 }
