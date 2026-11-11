@@ -1,0 +1,27 @@
+# Tests, vulnerability scan, and the same packaging + installer lifecycle the release
+# runs (REL-04), on every push and pull request. Releases are cut with
+# scripts/release.sh (docs/release-runbook.md).
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions: {}
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - run: test -z "$(gofmt -l .)" || { gofmt -l .; exit 1; }
+      - run: go vet ./...
+      - run: go test -count=1 -race ./...
+      - run: go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...
+      - run: sh scripts/package.sh v0.0.0-ci
+      - run: sh scripts/test-installer.sh
