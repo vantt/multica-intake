@@ -79,6 +79,21 @@ main() {
     || die "the published one-line install failed" "HOME=\$(mktemp -d) sh -c 'curl -fsSL https://github.com/$REPO/releases/latest/download/install.sh | sh'"
   "$t/.local/bin/multica-intake" --version | grep -q "$V" || die "the published installer did not install $V"
   rm -rf "$t"
+
+  # Upgrade from the previous release (TST-03): install it, write a config, `update`,
+  # then the version must have changed and the config must have survived.
+  prev="$(git tag --list 'v*' --sort=-v:refname | grep -vx "$V" | head -1 || true)"
+  if [ -n "$prev" ]; then
+    step "upgrade $prev -> $V"
+    t="$(mktemp -d)"
+    HOME="$t" sh -c "curl -fsSL https://github.com/$REPO/releases/download/$prev/install.sh | sh -s -- --yes" >/dev/null 2>&1 \
+      || die "could not install $prev for the upgrade test"
+    HOME="$t" "$t/.local/bin/multica-intake" config set intake_agent "Upgrade Test" >/dev/null 2>&1
+    HOME="$t" "$t/.local/bin/multica-intake" update --yes >/dev/null 2>&1 || die "update $prev -> $V failed"
+    HOME="$t" "$t/.local/bin/multica-intake" --version | grep -q "$V" || die "update did not install $V"
+    [ "$(HOME="$t" "$t/.local/bin/multica-intake" config get intake_agent)" = "Upgrade Test" ] || die "the config did not survive the update"
+    rm -rf "$t"
+  fi
   echo "released $V: https://github.com/$REPO/releases/tag/$V" >&2
 }
 

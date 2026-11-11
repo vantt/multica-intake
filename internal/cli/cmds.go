@@ -105,20 +105,26 @@ func runDoctor(ctx context.Context, e *env, args []string) int {
 }
 
 func (e *env) report(verb string, rep doctor.Report, s *setup) int {
-	var next []string
+	var next, later []string
 	for _, c := range rep.Checks {
 		if (c.Status == doctor.Fail || c.Status == doctor.Warn) && c.Fix != "" {
-			next = append(next, c.Fix)
+			// `config set` also creates the file, so settings come before `init`.
+			if strings.HasPrefix(c.Fix, "multica-intake init") {
+				later = append(later, c.Fix)
+			} else {
+				next = append(next, c.Fix)
+			}
 		}
 	}
+	next = append(next, later...)
 	if rep.OK {
 		if !s.exists || len(s.cfg.Validate()) > 0 {
 			next = append(next, "multica-intake init --yes")
 		} else if verb == "init" {
 			next = append(next, "multica-intake service install   # or: multica-intake mcp --http")
 		}
-	} else {
-		next = append(next, "multica-intake doctor")
+	} else if len(later) == 0 {
+		next = append(next, "multica-intake "+verb)
 	}
 	var errOut *ErrorOut
 	if !rep.OK {

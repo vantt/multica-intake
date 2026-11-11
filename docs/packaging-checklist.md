@@ -58,8 +58,8 @@ skill's `templates/install.sh` for the installer.
 | REL-03/04 | MUST | **deviation** | Release is cut locally by `scripts/release.sh`, which runs the full test suite, govulncheck, packaging and the installer lifecycle before tagging; CI runs the same on every push/PR. Reason: GitHub disabled Actions on the owner's fork in 2026-11; a tag workflow would be a single point of failure. Move to a tag workflow once Actions is reliable |
 | REL-07/09/10 | SHOULD | done | Draft → asset count check → publish → public one-liner verified; reproducible (SOURCE_DATE_EPOCH, trimpath, deterministic tar, sorted checksums); CI `permissions: {}`, actions pinned by SHA |
 | REL-13 | SHOULD | done | `docs/release-runbook.md` |
-| TST-01/02/04 | MUST | done | Consumer proof from built assets outside the checkout (`test-installer.sh`); smoke in the release (public one-liner); agent loop non-interactive |
-| TST-03 | MUST | todo | Upgrade-from-previous-tag test starts with the second release (no previous tag yet); `update` swap is unit-tested against a fixture release |
+| TST-01/02/04 | MUST | done | Consumer proof from built assets outside the checkout (`test-installer.sh`); smoke in the release (public one-liner); agent loop non-interactive. Verify #12 run on v0.1.0: a fresh agent with only `--help`/`--json` reached `doctor` ok; its notes fixed in v0.1.1 |
+| TST-03 | MUST | done | `release.sh` installs the previous release, runs `update --yes`, checks the version changed and the config survived (from v0.1.1) |
 | TST-07/08 | SHOULD | done | Pure policies unit-tested; tests use temp HOME and dirs |
 
 Not applicable:
@@ -70,5 +70,4 @@ Not applicable:
 ## Plan (open items)
 
 1. SEC-02: cosign keyless + SBOM, once releases run in a tag workflow.
-2. TST-03: add `update` from the previous tag to `release.sh` from v0.1.1 on.
-3. ONB-09: extract README quick-start blocks into the installer test.
+2. ONB-09: extract README quick-start blocks into the installer test.

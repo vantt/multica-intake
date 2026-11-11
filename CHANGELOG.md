@@ -3,6 +3,16 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow semver.
 
+## [0.1.1] - 2026-11-11
+
+### Changed
+- `init --help` shows how to give `multica_url` and `intake_agent` without a terminal
+  (`config set` or `MULTICA_INTAKE_*` env vars), and its examples agree with the defaults.
+- `doctor --help` and the `account` check say that, without a token file, the intake agent is
+  checked on each bot call rather than by doctor.
+- `next` lists `config set` fixes before `init --yes`, so an agent needs one round fewer.
+- `release.sh` now proves the upgrade from the previous release (`update` keeps the config).
+
 ## [0.1.0] - 2026-11-11
 
 First release.

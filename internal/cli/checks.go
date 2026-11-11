@@ -179,7 +179,7 @@ func (s *setup) checks() []doctor.Check {
 		Run: func(ctx context.Context) doctor.Result {
 			tok, err := readToken(tf)
 			if errors.Is(err, os.ErrNotExist) {
-				return doctor.Result{Status: doctor.Skip, Detail: "no token file; each HTTP caller is checked when it calls"}
+				return doctor.Result{Status: doctor.Skip, Detail: "no token file, so the intake agent is not checked here; each HTTP caller is checked when it calls"}
 			}
 			if err != nil {
 				return doctor.Result{Status: doctor.Fail, Detail: err.Error(), Fix: "chmod 600 " + quote(tf)}

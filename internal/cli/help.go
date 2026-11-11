@@ -50,22 +50,27 @@ What it does:
   there is none. Re-running it is always safe: it changes nothing that is already right.
   It never installs the service (that is ` + "`service install`" + `) and never asks for a token.
 
-Prerequisites: a reachable Multica API (multica_url) and an agent there to receive issues.
+Prerequisites: a reachable Multica API and the name of the Multica agent that receives
+submitted issues. Two settings matter; give them any of these ways:
+  on a terminal       init asks for them
+  non-interactive     multica-intake config set multica_url <URL>
+                      multica-intake config set intake_agent "<agent name>"
+  environment         MULTICA_INTAKE_MULTICA_URL=<URL> MULTICA_INTAKE_INTAKE_AGENT="<agent name>"
 
 Flags:
   --yes        never prompt (default: prompt on a terminal for multica_url and intake_agent)
   --dry-run    show what would change, change nothing
-  --json       JSON envelope on stdout
+  --json       JSON envelope on stdout; "next" lists the commands still needed
   -c FILE      use this config file instead of <config_dir>/config.yaml
 
 Examples:
   multica-intake init
-  multica-intake init --yes --json
-  MULTICA_INTAKE_MULTICA_URL=http://127.0.0.1:8310 multica-intake init --yes
+  multica-intake config set intake_agent "Triage" && multica-intake init --yes --json
+  MULTICA_INTAKE_MULTICA_URL=http://127.0.0.1:8080 MULTICA_INTAKE_INTAKE_AGENT=Triage multica-intake init --yes
   multica-intake init --dry-run
 
-Exit codes: 0 ready · 1 something still needs you (see "next") · 2 usage error
-Next: multica-intake service install   (or multica-intake mcp --http)
+Exit codes: 0 ready · 1 something still needs you (run the "next" commands, then init again) · 2 usage error
+Next, once it exits 0: multica-intake service install   (or multica-intake mcp --http)
 `,
 	"doctor": `multica-intake doctor — find what is wrong, and how to fix it.
 
@@ -75,6 +80,11 @@ What it does:
   address, and the user service when it is installed. With --fix it repairs drift
   (file permissions, a stopped service) and re-checks, up to 3 rounds. It never
   creates a config: that is init.
+
+  Without a token file (HTTP mode) doctor cannot sign in, so it cannot confirm that
+  intake_agent exists in each workspace; that is checked on every bot call, and a
+  workspace without that agent is left out of list_workspaces. To check it now, put
+  a bot account's token in token_file (0600) and run doctor again.
 
 Flags:
   --fix        repair what can be repaired, then re-check
